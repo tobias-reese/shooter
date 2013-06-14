@@ -42,8 +42,8 @@ var Game = function() {
   cp.Space.prototype.removeBodyNS = function(body) {
     if(!body['removed']) {
       body['removed'] = true;
-      this['remove_bodies'].push(body);
       this['remove_shapes'] = this['remove_shapes'].concat(body.shapeList);
+      this['remove_bodies'].push(body);
     }
   }
 
