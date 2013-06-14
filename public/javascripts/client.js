@@ -3,6 +3,7 @@ var playerId = null;
 var currentShapes = null;
 var lastBB = {};
 var currentStatics = 0;
+var Resolution = {'width': 1024, 'height': 768};
 socket.on('news', function (data) {
   playerId = data.playerId;
 });
@@ -29,11 +30,11 @@ var ctx;
 var Client = function() {
   var self = this;
 	var canvas2point = this.canvas2point = function(x, y) {
-		return v(x / self.scale, 480 - y / self.scale);
+		return v(x / self.scale, Resolution['height'] - y / self.scale);
 	};
 
 	this.point2canvas = function(point) {
-    return {'x': (point.x * self.scale), 'y': ((480 - point.y) * self.scale)};
+    return {'x': (point.x * self.scale), 'y': ((Resolution['height'] - point.y) * self.scale)};
 	};
 
 };
@@ -94,10 +95,10 @@ Client.prototype.bgctx = canvasBg.getContext('2d');
 window.onresize = function(e) {
 	var width = Client.prototype.width = canvas.width = canvasBg.width = window.innerWidth;
 	var height = Client.prototype.height = canvas.height = canvasBg.height =  window.innerHeight;
-	if (width/height > 640/480) {
-		Client.prototype.scale = height / 480;
+	if (width/height > Resolution['width']/Resolution['height']) {
+		Client.prototype.scale = height / Resolution['height'];
 	} else {
-		Client.prototype.scale = width / 640;
+		Client.prototype.scale = width / Resolution['width'];
 	}
 
 	Client.resized = true;

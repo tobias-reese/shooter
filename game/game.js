@@ -11,17 +11,18 @@ var GRABABLE_MASK_BIT = 1<<31;
 var NOT_GRABABLE_MASK = ~GRABABLE_MASK_BIT;
 
 var BodyEnum = {'world': 0, 'bullet': 1, 'player_head': 2, 'player_body': 3};
-var Resolution = {'width': 1024, 'height': 768};
+var Resolution = {'width': 4096, 'height': 3072};
 var explodeShape = [];
 
 var Game = function() {
   this.remainder = 0;
+  var playerList = this.playerList;
 	var space = this.space = new cp.Space();
   space['remove_bodies'] = [];
   space['remove_shapes'] = [];
 
+
   var postStepRemoval = function(){
-    console.log("post step");
     while(space['remove_shapes'].length) {
       var shape = space['remove_shapes'].shift();
       space.removeShape(shape);
@@ -36,6 +37,18 @@ var Game = function() {
       }
       space.removeBody(body);
     }
+    removeDeadPlayer();
+  }
+
+  setInterval(function() {removeDeadPlayer()}, 10000);
+  var removeDeadPlayer = function(){
+    Object.keys(playerList).forEach(function (key) { 
+        var player = playerList[key];
+        if(player.health <= 0) {
+          space.removeBodyNS(player.body)
+        }
+    })
+    
   }
 
 
@@ -44,12 +57,14 @@ var Game = function() {
       body['removed'] = true;
       this['remove_shapes'] = this['remove_shapes'].concat(body.shapeList);
       this['remove_bodies'].push(body);
+      space.addPostStepCallback(postStepRemoval);
     }
   }
 
   space.addCollisionHandler(BodyEnum.world, BodyEnum.bullet, null, null, function(e){space.removeBodyNS(e.body_b)}, null);
   space.addCollisionHandler(BodyEnum.bullet, BodyEnum.world, null, null, function(e){space.removeBodyNS(e.body_a)}, null);
-  space.postStepCallbacks.push(postStepRemoval);
+  //space.postStepCallbacks.push(postStepRemoval);
+  //space.addPostStepCallback(postStepRemoval);
 	var self = this;
 
 };
@@ -180,7 +195,7 @@ Game.prototype.step = function() {
 
 Game.prototype.addFloor = function() {
 	var space = this.space;
-	var floor = space.addShape(new cp.SegmentShape(space.staticBody, v(0, 0), v(640, 0), 5));
+	var floor = space.addShape(new cp.SegmentShape(space.staticBody, v(0, 0), v(Resolution['width'], 0), 5));
 	floor.setElasticity(1);
 	floor.setFriction(1);
 	floor.setLayers(NOT_GRABABLE_MASK);
@@ -188,7 +203,7 @@ Game.prototype.addFloor = function() {
 
   //roof
   var space = this.space;
-	var roof = space.addShape(new cp.SegmentShape(space.staticBody, v(0, 480), v(640, 480), 5));
+	var roof = space.addShape(new cp.SegmentShape(space.staticBody, v(0, Resolution['height']), v(Resolution['width'], Resolution['height']), 5));
 	roof.setElasticity(1);
 	roof.setFriction(1);
 	roof.setLayers(NOT_GRABABLE_MASK);
@@ -197,13 +212,13 @@ Game.prototype.addFloor = function() {
 
 Game.prototype.addWalls = function() {
 	var space = this.space;
-	var wall1 = space.addShape(new cp.SegmentShape(space.staticBody, v(0, 0), v(0, 480), 5));
+	var wall1 = space.addShape(new cp.SegmentShape(space.staticBody, v(0, 0), v(0, Resolution['height']), 5));
 	//wall1.setElasticity(1);
 	wall1.setFriction(1);
 	wall1.setLayers(NOT_GRABABLE_MASK);
   wall1['bg'] = 1;
 
-	var wall2 = space.addShape(new cp.SegmentShape(space.staticBody, v(640, 0), v(640, 480), 5));
+	var wall2 = space.addShape(new cp.SegmentShape(space.staticBody, v(Resolution['width'], 0), v(Resolution['width'], Resolution['height']), 5));
 	//wall2.setElasticity(1);
 	wall2.setFriction(1);
 	wall2.setLayers(NOT_GRABABLE_MASK);
