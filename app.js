@@ -61,13 +61,13 @@ var sendSnapshot = function() {
 var sendUpdate = function() {
   var updates = deathmatch_game.getUpdates();
   if(updates.length) {
-    console.log('>>>>>>>>>>>>>>>>update:',updates);
+    //console.log('>>>>>>>>>>>>>>>>update:',updates);
     io.sockets.emit('game', JSON.stringify({'bodies': updates}));
   }
 }
 
 
-io = io.listen(app);
+io = io.listen(app, { log: false })
 io.sockets.on('connection', function (socket) {
   var playerId = deathmatch_game.newPlayer();
   socket['playerId'] = playerId;

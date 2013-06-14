@@ -81,7 +81,7 @@ Player.prototype.shoot = function() {
   bulletShape.collision_type = 1;
   bullet.group = 2;
   bullet.f = v(0, 45);
-  bullet.setVelocity(new cp.Vect(500*dir,0));
+  bullet.setVel(new cp.Vect(500*dir,0));
 }
 
 //0=left, 1=right, 2=up
@@ -107,17 +107,17 @@ Player.prototype.move = function(direction) {
       this.body.applyImpulse(new cp.Vect(0,1000), new cp.Vect(0,0));
     }
     else if(direction === 0) {
-      this.body.setVelocity(new cp.Vect(-200,0));
+      this.body.setVel(new cp.Vect(-200,0));
     }
     else if(direction === 1) {
-      this.body.setVelocity(new cp.Vect(200,0));
+      this.body.setVel(new cp.Vect(200,0));
     }
   }
 }
 
 Player.prototype.keyup = function(e) {
   if(this.body.arbiterList !== null) {
-    this.body.setVelocity(new cp.Vect(0,0));
+    this.body.setVel(new cp.Vect(0,0));
   }
 }
 
