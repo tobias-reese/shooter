@@ -30,20 +30,59 @@ var initPlayer = function(context) {
   legs.collision_type = context.id+1;
 
   context.space.addCollisionHandler(head.collision_type, 1, null, null, function(e){
-    context.space.removeBodyNS(e.body_b);
-    e.body_a.player.hit(true)
+    var player;
+    var bullet;
+    if(typeof e.body_a.player === "undefined") {
+      bullet = e.body_a;
+      player = e.body_b}
+    else {
+      bullet = e.body_b;
+      player = e.body_a
+    }
+
+    context.space.removeBodyNS(bullet);
+    player.player.hit(true)
   }, null);
   context.space.addCollisionHandler(1, head.collision_type, null, null, function(e){
-    context.space.removeBodyNS(e.body_a);
-    e.body_b.player.hit(true)
+    var player;
+    var bullet;
+    if(typeof e.body_a.player === "undefined") {
+      bullet = e.body_a;
+      player = e.body_b}
+    else {
+      bullet = e.body_b;
+      player = e.body_a
+    }
+
+    context.space.removeBodyNS(bullet);
+    player.player.hit(true)
   }, null);
   context.space.addCollisionHandler(torso.collision_type, 1, null, null, function(e){
-    context.space.removeBodyNS(e.body_b);
-    e.body_a.player.hit(false)
+    var player;
+    var bullet;
+    if(typeof e.body_a.player === "undefined") {
+      bullet = e.body_a;
+      player = e.body_b}
+    else {
+      bullet = e.body_b;
+      player = e.body_a
+    }
+
+    context.space.removeBodyNS(bullet);
+    player.player.hit(false)
   }, null);
   context.space.addCollisionHandler(1, legs.collision_type, null, null, function(e){
-    context.space.removeBodyNS(e.body_a);
-    e.body_b.player.hit(false)
+    var player;
+    var bullet;
+    if(typeof e.body_a.player === "undefined") {
+      bullet = e.body_a;
+      player = e.body_b}
+    else {
+      bullet = e.body_b;
+      player = e.body_a
+    }
+    context.space.removeBodyNS(bullet);
+    player.player.hit(false)
   }, null);
 
 

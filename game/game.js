@@ -21,6 +21,7 @@ var Game = function() {
   space['remove_shapes'] = [];
 
   var postStepRemoval = function(){
+    console.log("post step");
     while(space['remove_shapes'].length) {
       var shape = space['remove_shapes'].shift();
       space.removeShape(shape);
@@ -42,6 +43,7 @@ var Game = function() {
     if(!body['removed']) {
       body['removed'] = true;
       this['remove_bodies'].push(body);
+      this['remove_shapes'] = this['remove_shapes'].concat(body.shapeList);
     }
   }
 
