@@ -17,6 +17,7 @@ function Player(position, space) {
 var initPlayer = function(context) {
   var body = context.space.addBodyServer(new cp.Body(5, Infinity));
   body.setPos(context.position);
+  body.v_limit = 800;
   body['kind'] = 'player';
   var head = context.space.addShape(new cp.CircleShape(body, 5, v(0, 12)));
   var torso = context.space.addShape(new cp.CircleShape(body, 7, v(0, 0)));
