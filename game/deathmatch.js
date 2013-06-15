@@ -33,6 +33,18 @@ var Deathmatch = function() {
 	ramp.setElasticity(1);
 	ramp.setFriction(1);
   ramp['bg'] = 1;
+
+	var middle = space.addShape(new cp.SegmentShape(space.staticBody, v(400, 1000), v(1500, 1100), 10));
+	middle.setElasticity(1);
+	middle.setFriction(1);
+  middle['bg'] = 1;
+
+	var middle2 = space.addShape(new cp.SegmentShape(space.staticBody, v(2000, 1000), v(4000, 1100), 10));
+	middle2.setElasticity(1);
+	middle2.setFriction(1);
+  middle2['bg'] = 1;
+
+
 	//ramp.setLayers(NOT_GRABABLE_MASK);
 
 

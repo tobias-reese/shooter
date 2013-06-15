@@ -18,16 +18,12 @@ var Game = function() {
   this.remainder = 0;
   var playerList = this.playerList;
 	var space = this.space = new cp.Space();
+  this.destroyedBodies = [];
+  var game = this;
   space['remove_bodies'] = [];
-  space['remove_shapes'] = [];
 
 
   var postStepRemoval = function(){
-    while(space['remove_shapes'].length) {
-      var shape = space['remove_shapes'].shift();
-      space.removeShape(shape);
-      explodeShape.push(shape.hashid);
-    }
     while(space['remove_bodies'].length) {
       var body = space['remove_bodies'].shift();
       while(body.shapeList.length) {
@@ -35,27 +31,27 @@ var Game = function() {
         explodeShape.push(shape.hashid);
         space.removeShape(shape);
       }
+      game.destroyedBodies.push(body.id);
       space.removeBody(body);
     }
-    removeDeadPlayer();
+    //removeDeadPlayer();
   }
 
-  setInterval(function() {removeDeadPlayer()}, 10000);
-  var removeDeadPlayer = function(){
-    Object.keys(playerList).forEach(function (key) { 
-        var player = playerList[key];
-        if(player.health <= 0) {
-          space.removeBodyNS(player.body)
-        }
-    })
-    
-  }
+//setInterval(function() {removeDeadPlayer()}, 10000);
+//var removeDeadPlayer = function(){
+//  Object.keys(playerList).forEach(function (key) { 
+//      var player = playerList[key];
+//      if(player.health <= 0) {
+//        space.removeBodyNS(player.body)
+//      }
+//  })
+//  
+//}
 
 
   cp.Space.prototype.removeBodyNS = function(body) {
     if(!body['removed']) {
       body['removed'] = true;
-      this['remove_shapes'] = this['remove_shapes'].concat(body.shapeList);
       this['remove_bodies'].push(body);
       space.addPostStepCallback(postStepRemoval);
     }
@@ -125,6 +121,13 @@ Game.prototype.getBodies = function() {
 
 Game.prototype.getUpdates = function() {
   var bodies = [];
+  var removeBodies = this.destroyedBodies.slice();
+  this.destroyedBodies = [];
+  for(var i=0; i<removeBodies.length; i++) {
+    var bodyDraw = {'action': 'destroy', 'id': removeBodies[i]}
+    bodies.push(bodyDraw)
+  }
+  
   this.space.eachBody(function(body){
     if(body.nodeIdleTime < 0.5) {
       var bodyDraw = body.draw('move');

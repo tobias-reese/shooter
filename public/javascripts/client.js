@@ -11,13 +11,13 @@ socket.on('news', function (data) {
 
 socket.on('game', function(updates) {
   currentUpdate = JSON.parse(updates);
-  clientSpace.newUpdate(currentUpdate);
+  cliont.update(currentUpdate);
 });
 
 socket.on('snapshot', function(snapshot) {
   var currentSnapshot = JSON.parse(snapshot);
 
-  clientSpace.newSnapshot(currentSnapshot);
+  client.snapshot(currentSnapshot);
 });
 
 var input = function(action) {
@@ -44,6 +44,13 @@ var Client = function() {
 };
 window.innerHeight;
 window.innerWidth;
+
+Client.prototype.update = function(currentUpdate) {
+}
+
+Client.prototype.snapshot = function(currentSnapshot) {
+  console.log(currentSnapshot)
+}
 
 Client.prototype.setPosition = function(position) {
   var offsetX = position.x-window.innerWidth/2;
@@ -88,8 +95,6 @@ var drawCircle = function(g, scale, point2canvas, c, radius) {
 	    g.endFill();
 	    g.setStrokeStyle(1, 'round', 'round');
 
-};
-
 var drawLine = function(ctx, point2canvas, a, b) {
   //console.log('drawLine');
 	a = point2canvas(a); b = point2canvas(b);
@@ -101,23 +106,42 @@ var drawLine = function(ctx, point2canvas, a, b) {
 
 var canvas = Client.prototype.canvas = document.getElementById('fg'); //document.getElementsByTagName('canvas')[0];
 var canvasBg = Client.prototype.canvasBg = document.getElementById('bg');
+var backgroundImage = Client.prototype.backgroundImage = document.getElementById('background'); //document.getElementsByTagName('canvas')[0];
 
-canvasBg.style.position = canvas.style.position = "absolute";
-canvasBg.style.top = canvas.style.top = "0";
-canvasBg.style.left = canvas.style.left = "0";
+
+backgroundImage.style.position = canvasBg.style.position = canvas.style.position = "absolute";
+backgroundImage.style.top = canvasBg.style.top = canvas.style.top = "0";
+backgroundImage.style.left = canvasBg.style.left = canvas.style.left = "0";
+backgroundImage.style.width = Resolution.width+'px';
+backgroundImage.style.height = Resolution.height+'px';
 
 var stageBg = new createjs.Stage(canvasBg)
 var stage = new createjs.Stage(canvas);
 Client.prototype.ctx = stage; //canvas.getContext('2d');
 Client.prototype.bgctx = stageBg; //canvasBg.getContext('2d');
 
-// The physics space size is 640x480, with the origin in the bottom left.
-// Its really an arbitrary number except for the ratio - everything is done
-// in floating point maths anyway.
+var background = new Image();
+background.src = "/images/glass.png";
+
+// Make sure the image is loaded first otherwise nothing will draw.
+background.onload = function(){
+  var ptrn = backgroundImageContext.createPattern(background, 'repeat'); // Create a pattern with this image, and set it to "repeat".
+  backgroundImageContext.fillStyle = ptrn;
+  backgroundImageContext.fillRect(0, 0, Resolution.width, Resolution.height);
+}
+
+
+
+
 
 window.onresize = function(e) {
 	var width = canvas.width = canvasBg.width = window.innerWidth;
 	var height = canvas.height = canvasBg.height =  window.innerHeight;
+
+  var view = document.getElementById('view');
+  view.style.width = window.innerWidth+'px';
+  view.style.height = window.innerHeight+'px';
+  view.style.overflom = 'hidden';
   Client.prototype.height = Resolution.height;
   Client.prototype.width = Resolution.width;
 	if (width/height > Resolution['width']/Resolution['height']) {
@@ -212,93 +236,12 @@ Client.prototype.draw = function(shapes) {
 Client.prototype.firstDraw = function() {
   var self = this;
 
-  /*
-	var ctx = this.ctx;
-	ctx.strokeStyle = 'black';
-  this.bgctx.strokeStyle = 'black';
-  for(var index in clientSpace.bodies) {
-    var body = clientSpace[index];
-    lastBB[body.hashid] = {'position': {'x': body.p.x-body.bb_width/2, 'y': body.p.y + body.p.y /2}, 'width': body.bb_width, 'height': body.bb_height}
-    body.eachShape(function(shape) {
-      shape.draw(ctx, self.scale, self.point2canvas);
-    });
-  };
-  */
-
-  var staticShapes = clientSpace.space.staticBody.shapeList;
-  //console.log('staticShapes',staticShapes);
-  //console.log('staticShapes',staticShapes.length);
-  console.log(staticShapes)
-
-  for(var i=0; i<staticShapes.length; i++) {
-    var staticShape = staticShapes[i];
-    var point = self.point2canvas(staticShape.ta);
-    if(typeof shapeList[staticShape.hashid] === 'undefined') {
-    //console.log('eachonedrawstatic');
-
-      var shape = new createjs.Shape();
-      staticShape.draw(shape, self.scale, self.point2canvas);
-      self.bgctx.addChild(shape);
-    }
-    else {
-      var shape = shapeList[staticShape.hashid]
-      shape.x = point.x;
-      shape.y = point.y;
-    }
-
-  }
-  if(self.offsetChange == true) {
-    self.bgctx.update();
-    self.offsetChange = false;
-  }
 
 
-}
-
-Client.prototype.draw = function() {
-  var self = this;
-  var scale = this.scale;
-
-	var ctx = this.ctx;
-	//ctx.strokeStyle = 'black';
-
-/*
-  for(var index in clientSpace.bodies) {
-    var body = clientSpace[index];
-    if(body.nodeIdleTime < 0.5) {
-      var bodyBB = lastBB[body.hashid];
-      if(bodyBB){
-        var point = self.point2canvas(bodyBB.position);
-        ctx.clearRect(point.x*scale, point.y*scale, bodyBB.bb_width*scale, bodyBB.bb_height*scale);
-      }
-    }
-  };
-  */
-
-//ctx.clearRect(0,0,this.width, this.height);
-
-//if(clientSpace.space.staticBody.shapeList.length > currentStatics) {
-//  currentStatics = clientSpace.space.staticBody.shapeList.length;
-//  client.firstDraw();
-
-//}
-
-  for(var index in clientSpace.bodies) {
-    var body = clientSpace.bodies[index];
-    //if(body.nodeIdleTime < 0.5) {
-      //lastBB[body.hashid] = {'position': {'x': body.p.x-body.bb_width/2, 'y': body.p.y + body.p.y /2}, 'width': body.bb_width, 'height': body.bb_height}
-      body.eachShape(function(shape){
-        shape.draw(ctx, self.scale, self.point2canvas);
-      });
-      ctx.update();
-    //}
-  };
-
-}
 
 document.onkeypress = function(e) {
   var key = e.charCode || e.keyCode;
-  console.log('keyPress: ' +  e.charCode || e.keyCode);
+  //console.log('keyPress: ' +  e.charCode || e.keyCode);
   if(key === client.controls.left) {
     input(0);
   }
@@ -311,70 +254,20 @@ document.onkeypress = function(e) {
   else if(key === client.controls.shoot) {
     input(3);
   }
+  e.preventDefault();
 
 }
 
 document.onkeyup = function(e) {
-  console.log('keyUp:' + e.keyCode);
+  //console.log('keyUp:' + e.keyCode);
   if(e.keyCode === client.controls.leftUp || e.keyCode === client.controls.rightUp) {
     input(4);
   }
+  e.preventDefault();
 
 }
 
 Client.prototype.controls = {'left': 97, 'right': 100, 'up': 119, 'shoot': 32, 'leftUp': 65, 'rightUp': 68}
 //Client.prototype.controls = {'left': 65, 'right': 69, 'up': 44, 'shoot': 32, 'leftUp': 65, 'rightUp': 69}
-
-//client simulation
-var clientSpace = new clientSpace();
-clientSpace.run();
-client.firstDraw();
-
-var animation = function(){
-  clientSpace.step();
-  client.draw();
-  /*
-  if (currentShapes !== null) {
-    client.draw(currentShapes);
-    currentShapes = null;
-  }
-  */
-  requestAnimationFrame(animation);
-};
-animation();
-
-cp.SegmentShape.prototype.draw = function(ctx, scale, point2canvas) {
-  //console.log('drawstatic');
-  var g = ctx.graphics;
-	var oldLineWidth = ctx.lineWidth;
-	g.setStrokeStyle(Math.max(1, this.r * scale * 2), 'round').beginStroke('black');
-  //console.log('before draw');
-	drawLine(g, point2canvas, this.ta, this.tb);
-};
-
-cp.CircleShape.prototype.draw = function(ctx, scale, point2canvas) {
-  var body = this.body;
-  var point = point2canvas(this.tc);
-  if(typeof shapeList[body.serverId] === 'undefined') {
-    var shape = new createjs.Shape();
-    var g = shape.graphics;
-    console.log('d');
-    drawCircle(g, scale, point2canvas, this.tc, this.r);
-    stage.addChild(shape);
-    shapeList[body.serverId] = shape;
-  }
-  else {
-    var shape = shapeList[body.serverId]
-    shape.x = point.x;
-    shape.y = point.y;
-  }
-
-  //if(typeof this.type === 'undefined') {
-    //drawCircle(ctx, scale, point2canvas, this.tc, this.r);
-//}
-//else {
-//  console.log('draw image')
-//}
-};
 
 
