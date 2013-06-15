@@ -351,7 +351,12 @@ cp.SegmentShape.prototype.draw = function(ctx, scale, point2canvas) {
 };
 
 cp.CircleShape.prototype.draw = function(ctx, scale, point2canvas) {
-	drawCircle(ctx, scale, point2canvas, this.tc, this.r);
+  if(typeof this.type === 'undefined') {
+    drawCircle(ctx, scale, point2canvas, this.tc, this.r);
+  }
+  else {
+    console.log('draw image')
+  }
 };
 
 

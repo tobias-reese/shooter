@@ -86,9 +86,17 @@
     var object = new cp.Body(1, Infinity);
     object.setPos(body.position);
     this.bodies[body.id] = object;
-    var head = this.space.addShape(new cp.CircleShape(object, 5, v(0, 12)));
-    var torso = this.space.addShape(new cp.CircleShape(object, 7, v(0, 0)));
-    var legs = this.space.addShape(new cp.CircleShape(object, 7, v(0, -14)));
+    var headShape = new cp.CircleShape(object, 5, v(0, 12));
+    var torsoShape = new cp.CircleShape(object, 5, v(0, 12));
+    var legShape = new cp.CircleShape(object, 5, v(0, 12));
+    headShape['type'] = 'head';
+    torsoShape['type'] = 'torso';
+    legShape['type'] = 'leg';
+
+
+    var head = this.space.addShape(headShape);
+    var torso = this.space.addShape(torsoShape);
+    var legs = this.space.addShape(legShape);
     object = playerBB(body);
   }
 
