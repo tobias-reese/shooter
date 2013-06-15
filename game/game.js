@@ -262,7 +262,7 @@ cp.Body.prototype.draw = function(action) {
 
   switch(this.kind) {
     case 'player':
-      body = {'kind': 'player', 'position': this.p, 'action': action, 'id': this.id};
+      body = {'kind': 'player', 'position': this.p, 'action': action, 'id': this.id, 'playerId': this.player.id};
       break;
     case 'circle':
       body = {'kind': 'circle', 'position': this.p, 'radius': this.radius, 'action': action, 'id': this.id};

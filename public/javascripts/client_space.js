@@ -26,6 +26,9 @@
     for(var i=0; i<bodyUpdates.length; i++) {
       switch(bodyUpdates[i].action) {
         case 'move':
+          if(bodyUpdates[i].playerId == playerId) {
+            client.setPosition(bodyUpdates[i].position)
+          }
           this.moveBody(bodyUpdates[i]);
           break;
         case 'new':

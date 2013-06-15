@@ -1,4 +1,4 @@
-var socket = io.connect('http://localhost');
+var socket = io.connect('http://192.168.1.75');
 var playerId = null;
 var currentShapes = null;
 var lastBB = {};
@@ -15,7 +15,6 @@ socket.on('game', function(updates) {
 
 socket.on('snapshot', function(snapshot) {
   var currentSnapshot = JSON.parse(snapshot);
-  console.log('snapshott',currentSnapshot);
 
   clientSpace.newSnapshot(currentSnapshot);
 });
@@ -42,11 +41,39 @@ var Client = function() {
 	};
 
 };
+window.innerHeight;
+window.innerWidth;
 
-Client.prototype.setOffset = function(x, y) {
-  this.offset.x = x;
-  this.offset.y = y;
+Client.prototype.setPosition = function(position) {
+  var offsetX = position.x-window.innerWidth/2;
+  var offsetY = Resolution.height - (position.y + window.innerHeight/2);
+  if(offsetX > Resolution.width - window.innerWidth) {
+    this.offset.x = (Resolution.width - window.innerWidth)*(-1);
+  }
+  else {
+    if(offsetX < 0) {
+      offsetX = 0
+    }
+    else {
+      this.offset.x = offsetX * (-1);
+    }
+  }
+  if(offsetY > Resolution.height - window.innerHeight) {
+    this.offset.y = (Resolution.height - window.innerHeight)*(-1);
+  }
+  else {
+    if(offsetY < 0) {
+      offsetY = 0
+    }
+    else {
+      this.offset.y = offsetY * (-1);
+    }
+  }
+
+//this.offset.x = offset;
+//this.offset.y = Resolution.width - position.y;
   this.offsetChange = true;
+  client.firstDraw();
 }
 
 
