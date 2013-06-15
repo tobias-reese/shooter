@@ -1,7 +1,8 @@
 var socket = io.connect('http://192.168.1.75');
 var playerId = null;
 var currentShapes = null;
-var lastBB = {};
+//var lastBB = {};
+var shapeList = {};
 var currentStatics = 0;
 var Resolution = {'width': 4096, 'height': 3072};
 socket.on('news', function (data) {
@@ -79,41 +80,24 @@ Client.prototype.setPosition = function(position) {
 
 window.client = new Client();
 
-var drawCircle = function(ctx, scale, point2canvas, c, radius) {
-  ctx.strokeStyle = null;
-  ctx.fillStyle = 'black';
-	ctx.lineWidth = 0;
-	var c = point2canvas(c);
-	ctx.beginPath();
-	ctx.arc(c.x, c.y, scale * radius, 0, 2*Math.PI, false);
-	ctx.fill();
-	ctx.stroke();
+var drawCircle = function(g, scale, point2canvas, c, radius) {
+	    g.setStrokeStyle(15, 'round', 'round');
+	    g.beginStroke("#000");
+	    g.beginFill("#F00");
+	    g.drawCircle(0, 0, scale*radius); //55,53
+	    g.endFill();
+	    g.setStrokeStyle(1, 'round', 'round');
+
 };
 
 var drawLine = function(ctx, point2canvas, a, b) {
-  console.log('drawLine');
+  //console.log('drawLine');
 	a = point2canvas(a); b = point2canvas(b);
 
-	ctx.beginPath();
-	ctx.moveTo(a.x, a.y);
+  ctx.moveTo(a.x, b.y);
 	ctx.lineTo(b.x, b.y);
-	ctx.stroke();
+  ctx.closePath();
 };
-
-var drawSegmentShape = function(object, scale, ctx, point2canvas){
-	var oldLineWidth = ctx.lineWidth;
-	ctx.lineWidth = Math.max(1, object.thickness * scale * 2);
-	drawLine(ctx, point2canvas, object.startPosition, object.endPosition);
-	ctx.lineWidth = oldLineWidth;
-
-}
-
-var drawCircleShape = function(object, scale, ctx, point2canvas){
-
-  lastBB[object.id] = {'pos': object.position, 'radius': object.radius};
-  drawCircle(ctx, scale, point2canvas, object.position, object.radius);
-}
-
 
 var canvas = Client.prototype.canvas = document.getElementById('fg'); //document.getElementsByTagName('canvas')[0];
 var canvasBg = Client.prototype.canvasBg = document.getElementById('bg');
@@ -122,8 +106,10 @@ canvasBg.style.position = canvas.style.position = "absolute";
 canvasBg.style.top = canvas.style.top = "0";
 canvasBg.style.left = canvas.style.left = "0";
 
-var ctx = Client.prototype.ctx = canvas.getContext('2d');
-Client.prototype.bgctx = canvasBg.getContext('2d');
+var stageBg = new createjs.Stage(canvasBg)
+var stage = new createjs.Stage(canvas);
+Client.prototype.ctx = stage; //canvas.getContext('2d');
+Client.prototype.bgctx = stageBg; //canvasBg.getContext('2d');
 
 // The physics space size is 640x480, with the origin in the bottom left.
 // Its really an arbitrary number except for the ratio - everything is done
@@ -239,19 +225,34 @@ Client.prototype.firstDraw = function() {
   };
   */
 
+  var staticShapes = clientSpace.space.staticBody.shapeList;
+  //console.log('staticShapes',staticShapes);
+  //console.log('staticShapes',staticShapes.length);
+  console.log(staticShapes)
+
+  for(var i=0; i<staticShapes.length; i++) {
+    var staticShape = staticShapes[i];
+    var point = self.point2canvas(staticShape.ta);
+    if(typeof shapeList[staticShape.hashid] === 'undefined') {
+    //console.log('eachonedrawstatic');
+
+      var shape = new createjs.Shape();
+      staticShape.draw(shape, self.scale, self.point2canvas);
+      self.bgctx.addChild(shape);
+    }
+    else {
+      var shape = shapeList[staticShape.hashid]
+      shape.x = point.x;
+      shape.y = point.y;
+    }
+
+  }
   if(self.offsetChange == true) {
-    self.bgctx.clearRect(0,0,this.width, this.height);
+    self.bgctx.update();
     self.offsetChange = false;
   }
 
-  this.bgctx.strokeStyle = 'black';
-  var staticShapes = clientSpace.space.staticBody.shapeList;
-  console.log('staticShapes',staticShapes);
-  console.log('staticShapes',staticShapes.length);
-  for(var i=0; i<staticShapes.length; i++) {
-    console.log('eachonedrawstatic');
-    staticShapes[i].draw(self.bgctx, self.scale, self.point2canvas);
-  }
+
 }
 
 Client.prototype.draw = function() {
@@ -259,7 +260,7 @@ Client.prototype.draw = function() {
   var scale = this.scale;
 
 	var ctx = this.ctx;
-	ctx.strokeStyle = 'black';
+	//ctx.strokeStyle = 'black';
 
 /*
   for(var index in clientSpace.bodies) {
@@ -274,13 +275,13 @@ Client.prototype.draw = function() {
   };
   */
 
-  ctx.clearRect(0,0,this.width, this.height);
+//ctx.clearRect(0,0,this.width, this.height);
 
-  if(clientSpace.space.staticBody.shapeList.length > currentStatics) {
-    currentStatics = clientSpace.space.staticBody.shapeList.length;
-    client.firstDraw();
+//if(clientSpace.space.staticBody.shapeList.length > currentStatics) {
+//  currentStatics = clientSpace.space.staticBody.shapeList.length;
+//  client.firstDraw();
 
-  }
+//}
 
   for(var index in clientSpace.bodies) {
     var body = clientSpace.bodies[index];
@@ -289,6 +290,7 @@ Client.prototype.draw = function() {
       body.eachShape(function(shape){
         shape.draw(ctx, self.scale, self.point2canvas);
       });
+      ctx.update();
     //}
   };
 
@@ -342,21 +344,37 @@ var animation = function(){
 animation();
 
 cp.SegmentShape.prototype.draw = function(ctx, scale, point2canvas) {
-  console.log('drawstatic');
+  //console.log('drawstatic');
+  var g = ctx.graphics;
 	var oldLineWidth = ctx.lineWidth;
-	ctx.lineWidth = Math.max(1, this.r * scale * 2);
-  console.log('before draw');
-	drawLine(ctx, point2canvas, this.ta, this.tb);
-	ctx.lineWidth = oldLineWidth;
+	g.setStrokeStyle(Math.max(1, this.r * scale * 2), 'round').beginStroke('black');
+  //console.log('before draw');
+	drawLine(g, point2canvas, this.ta, this.tb);
 };
 
 cp.CircleShape.prototype.draw = function(ctx, scale, point2canvas) {
-  if(typeof this.type === 'undefined') {
-    drawCircle(ctx, scale, point2canvas, this.tc, this.r);
+  var body = this.body;
+  var point = point2canvas(this.tc);
+  if(typeof shapeList[body.serverId] === 'undefined') {
+    var shape = new createjs.Shape();
+    var g = shape.graphics;
+    console.log('d');
+    drawCircle(g, scale, point2canvas, this.tc, this.r);
+    stage.addChild(shape);
+    shapeList[body.serverId] = shape;
   }
   else {
-    console.log('draw image')
+    var shape = shapeList[body.serverId]
+    shape.x = point.x;
+    shape.y = point.y;
   }
+
+  //if(typeof this.type === 'undefined') {
+    //drawCircle(ctx, scale, point2canvas, this.tc, this.r);
+//}
+//else {
+//  console.log('draw image')
+//}
 };
 
 

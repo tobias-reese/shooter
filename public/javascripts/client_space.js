@@ -51,6 +51,7 @@
         object.setPos(body.position);
         object['bb_width'] = 2*body.radius;
         object['bb_height'] = 2*body.radius;
+        object['serverId'] = body.id;
         this.bodies[body.id] = object;
         var shape = this.space.addShape(new cp.CircleShape(object, body.radius, v(0, 0)));
         break;
@@ -85,6 +86,7 @@
   clientSpace.prototype.createEnemy = function(body) {
     var object = new cp.Body(1, Infinity);
     object.setPos(body.position);
+    object['serverId'] = body.id;
     this.bodies[body.id] = object;
     var headShape = new cp.CircleShape(object, 5, v(0, 12));
     var torsoShape = new cp.CircleShape(object, 5, v(0, 12));
