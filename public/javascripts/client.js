@@ -3,7 +3,7 @@ var playerId = null;
 var currentShapes = null;
 var lastBB = {};
 var currentStatics = 0;
-var Resolution = {'width': 1024, 'height': 768};
+var Resolution = {'width': 4096, 'height': 3072};
 socket.on('news', function (data) {
   playerId = data.playerId;
 });
@@ -29,15 +29,25 @@ var ctx;
 // Drawing helper methods
 var Client = function() {
   var self = this;
+  this.offset = {};
+  this.offset['x'] = 0;
+  this.offset['y'] = 0;
+  this.offsetChange = false;
 	var canvas2point = this.canvas2point = function(x, y) {
 		return v(x / self.scale, Resolution['height'] - y / self.scale);
 	};
 
 	this.point2canvas = function(point) {
-    return {'x': (point.x * self.scale), 'y': ((Resolution['height'] - point.y) * self.scale)};
+    return {'x': (point.x + self.offset.x * self.scale), 'y': ((Resolution['height'] - point.y + self.offset.y) * self.scale)};
 	};
 
 };
+
+Client.prototype.setOffset = function(x, y) {
+  this.offset.x = x;
+  this.offset.y = y;
+  this.offsetChange = true;
+}
 
 
 window.client = new Client();
@@ -93,12 +103,14 @@ Client.prototype.bgctx = canvasBg.getContext('2d');
 // in floating point maths anyway.
 
 window.onresize = function(e) {
-	var width = Client.prototype.width = canvas.width = canvasBg.width = window.innerWidth;
-	var height = Client.prototype.height = canvas.height = canvasBg.height =  window.innerHeight;
+	var width = canvas.width = canvasBg.width = window.innerWidth;
+	var height = canvas.height = canvasBg.height =  window.innerHeight;
+  Client.prototype.height = Resolution.height;
+  Client.prototype.width = Resolution.width;
 	if (width/height > Resolution['width']/Resolution['height']) {
-		Client.prototype.scale = height / Resolution['height'];
+		Client.prototype.scale = 1; //height / Resolution['height'];
 	} else {
-		Client.prototype.scale = width / Resolution['width'];
+		Client.prototype.scale = 1; //width / Resolution['width'];
 	}
 
 	Client.resized = true;
@@ -199,6 +211,11 @@ Client.prototype.firstDraw = function() {
     });
   };
   */
+
+  if(self.offsetChange == true) {
+    self.bgctx.clearRect(0,0,this.width, this.height);
+    self.offsetChange = false;
+  }
 
   this.bgctx.strokeStyle = 'black';
   var staticShapes = clientSpace.space.staticBody.shapeList;
