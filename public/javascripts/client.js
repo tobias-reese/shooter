@@ -81,7 +81,7 @@ window.client = new Client();
 
 var drawCircle = function(ctx, scale, point2canvas, c, radius) {
   ctx.strokeStyle = null;
-  ctx.fillStyle = 'black';
+  ctx.fillStyle = '#000000';
 	ctx.lineWidth = 0;
 	var c = point2canvas(c);
 	ctx.beginPath();
@@ -91,7 +91,7 @@ var drawCircle = function(ctx, scale, point2canvas, c, radius) {
 };
 
 var drawLine = function(ctx, point2canvas, a, b) {
-  console.log('drawLine');
+  //console.log('drawLine');
 	a = point2canvas(a); b = point2canvas(b);
 
 	ctx.beginPath();
@@ -117,13 +117,31 @@ var drawCircleShape = function(object, scale, ctx, point2canvas){
 
 var canvas = Client.prototype.canvas = document.getElementById('fg'); //document.getElementsByTagName('canvas')[0];
 var canvasBg = Client.prototype.canvasBg = document.getElementById('bg');
+var backgroundImage = Client.prototype.backgroundImage = document.getElementById('background'); //document.getElementsByTagName('canvas')[0];
 
-canvasBg.style.position = canvas.style.position = "absolute";
-canvasBg.style.top = canvas.style.top = "0";
-canvasBg.style.left = canvas.style.left = "0";
+
+backgroundImage.style.position = canvasBg.style.position = canvas.style.position = "absolute";
+backgroundImage.style.top = canvasBg.style.top = canvas.style.top = "0";
+backgroundImage.style.left = canvasBg.style.left = canvas.style.left = "0";
+backgroundImage.style.width = Resolution.width+'px';
+backgroundImage.style.height = Resolution.height+'px';
 
 var ctx = Client.prototype.ctx = canvas.getContext('2d');
 Client.prototype.bgctx = canvasBg.getContext('2d');
+var backgroundImageContext = backgroundImage.getContext('2d')
+
+var background = new Image();
+background.src = "/images/glass.png";
+
+// Make sure the image is loaded first otherwise nothing will draw.
+background.onload = function(){
+  var ptrn = backgroundImageContext.createPattern(background, 'repeat'); // Create a pattern with this image, and set it to "repeat".
+  backgroundImageContext.fillStyle = ptrn;
+  backgroundImageContext.fillRect(0, 0, Resolution.width, Resolution.height);
+}
+
+
+
 
 // The physics space size is 640x480, with the origin in the bottom left.
 // Its really an arbitrary number except for the ratio - everything is done
@@ -132,6 +150,11 @@ Client.prototype.bgctx = canvasBg.getContext('2d');
 window.onresize = function(e) {
 	var width = canvas.width = canvasBg.width = window.innerWidth;
 	var height = canvas.height = canvasBg.height =  window.innerHeight;
+
+  var view = document.getElementById('view');
+  view.style.width = window.innerWidth+'px';
+  view.style.height = window.innerHeight+'px';
+  view.style.overflom = 'hidden';
   Client.prototype.height = Resolution.height;
   Client.prototype.width = Resolution.width;
 	if (width/height > Resolution['width']/Resolution['height']) {
@@ -242,14 +265,16 @@ Client.prototype.firstDraw = function() {
   if(self.offsetChange == true) {
     self.bgctx.clearRect(0,0,this.width, this.height);
     self.offsetChange = false;
+    self.backgroundImage.style.top = this.offset.y+'px';
+    self.backgroundImage.style.left = this.offset.x+'px';
   }
 
-  this.bgctx.strokeStyle = 'black';
+  this.bgctx.strokeStyle = '#000000';
   var staticShapes = clientSpace.space.staticBody.shapeList;
-  console.log('staticShapes',staticShapes);
-  console.log('staticShapes',staticShapes.length);
+  //console.log('staticShapes',staticShapes);
+  //console.log('staticShapes',staticShapes.length);
   for(var i=0; i<staticShapes.length; i++) {
-    console.log('eachonedrawstatic');
+    //console.log('eachonedrawstatic');
     staticShapes[i].draw(self.bgctx, self.scale, self.point2canvas);
   }
 }
@@ -259,7 +284,7 @@ Client.prototype.draw = function() {
   var scale = this.scale;
 
 	var ctx = this.ctx;
-	ctx.strokeStyle = 'black';
+	ctx.strokeStyle = '#000000';
 
 /*
   for(var index in clientSpace.bodies) {
@@ -296,7 +321,7 @@ Client.prototype.draw = function() {
 
 document.onkeypress = function(e) {
   var key = e.charCode || e.keyCode;
-  console.log('keyPress: ' +  e.charCode || e.keyCode);
+  //console.log('keyPress: ' +  e.charCode || e.keyCode);
   if(key === client.controls.left) {
     input(0);
   }
@@ -309,14 +334,16 @@ document.onkeypress = function(e) {
   else if(key === client.controls.shoot) {
     input(3);
   }
+  e.preventDefault();
 
 }
 
 document.onkeyup = function(e) {
-  console.log('keyUp:' + e.keyCode);
+  //console.log('keyUp:' + e.keyCode);
   if(e.keyCode === client.controls.leftUp || e.keyCode === client.controls.rightUp) {
     input(4);
   }
+  e.preventDefault();
 
 }
 
@@ -342,10 +369,10 @@ var animation = function(){
 animation();
 
 cp.SegmentShape.prototype.draw = function(ctx, scale, point2canvas) {
-  console.log('drawstatic');
+  //console.log('drawstatic');
 	var oldLineWidth = ctx.lineWidth;
 	ctx.lineWidth = Math.max(1, this.r * scale * 2);
-  console.log('before draw');
+  //console.log('before draw');
 	drawLine(ctx, point2canvas, this.ta, this.tb);
 	ctx.lineWidth = oldLineWidth;
 };

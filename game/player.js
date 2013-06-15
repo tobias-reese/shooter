@@ -1,6 +1,8 @@
 var cp = require('chipmunk');
 var v = cp.v;
 Player.id = 2;
+var spawnPositions = [{'x': 100, 'y': 100}, {'x': 500, 'y': 100}, {'x': 1000, 'y': 100}, {'x': 600, 'y': 1100}, {'x': 800, 'y': 1200}, {'x': 2500, 'y': 1100}, {'x': 3000, 'y': 1200}, {'x': 2500, 'y': 100}, {'x': 3500, 'y': 100}, {'x': 4000, 'y': 100}];
+
 
 function Player(position, space) {
   this.health = 100;
@@ -13,6 +15,12 @@ function Player(position, space) {
   this.body = initPlayer(this);
 
 }
+
+Player.generateSpawnPosition = function() {
+  var rand = Math.floor((Math.random()*10));
+  var ret = spawnPositions[rand];
+  return {'x': ret.x, 'y': ret.y};
+} 
 
 var initPlayer = function(context) {
   var body = context.space.addBodyServer(new cp.Body(5, Infinity));
@@ -93,17 +101,29 @@ var initPlayer = function(context) {
 }
 
 Player.prototype.hit = function(headshot) {
+  console.log(this.health);
   if(headshot) {
-    this.space['remove_shapes'].push(this.body.shapeList[0]);
     this.health = 0;
-    this.body.setMoment(1);
-  }
-  if(this.health === 100) {
-    this.health = 50;
+    //this.body.setMoment(1);
+    var context = this;
+    this.body.setPos(Player.generateSpawnPosition());
+    console.log(this.body.p)
+    this.health = 100;
   }
   else {
-    this.health = 0;
-    this.body.setMoment(1);
+    if(this.health === 100) {
+      this.health = 50;
+    }
+    else {
+      this.health = 0;
+      //this.body.setMoment(1);
+      var context = this;
+      var pos = Player.generateSpawnPosition();
+      console.log(pos);
+      this.body.setPos(pos);
+      console.log(this.body.p)
+      this.health = 100;
+    }
   }
 }
 

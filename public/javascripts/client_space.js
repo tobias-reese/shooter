@@ -1,18 +1,19 @@
 (function(window) {
   var player = null;
   var v = cp.v;
-  var clientSpace = function() {
+  var ClientSpace = function() {
     var space = this.space = new cp.Space();
     space.iterations = 60;
     space.gravity = v(0, -500);
     space.sleepTimeThreshold = 0.5;
     space.collisionSlop = 0.5;
+    this['remove_bodies'] = [];
     
     this.bodies = {};
     this.remainder = 0;
   }
 
-  clientSpace.prototype.newSnapshot = function(snapshot) {
+  ClientSpace.prototype.newSnapshot = function(snapshot) {
     var bodies = snapshot['bodies'];
 
     for(var i=0; i<bodies.length; i++) {
@@ -20,7 +21,7 @@
     }
   }
 
-  clientSpace.prototype.newUpdate = function(update) {
+  ClientSpace.prototype.newUpdate = function(update) {
     //player.update(update['player']); //position, health, ammo, jetpack
     var bodyUpdates = update['bodies'];
     for(var i=0; i<bodyUpdates.length; i++) {
@@ -44,7 +45,7 @@
   }
 
   //body.kind bullet, big round thing, map should know this elements
-  clientSpace.prototype.addBody = function(body) {
+  ClientSpace.prototype.addBody = function(body) {
     switch(body.kind) {
       case 'circle':
         var object = new cp.Body(1, Infinity);
@@ -66,12 +67,12 @@
     }
   }
 
-  clientSpace.prototype.createStatic = function(body) {
+  ClientSpace.prototype.createStatic = function(body) {
     var wall = this.space.addShape(new cp.SegmentShape(this.space.staticBody, body.startPosition, body.endPosition, body.thickness));
     wall.setFriction(1);
   }
 
-  clientSpace.prototype.addPlayer = function(body) {
+  ClientSpace.prototype.addPlayer = function(body) {
     var object = new cp.Body(5, Infinity);
     object.setPos(body.position);
     var head = this.space.addShape(new cp.CircleShape(object, 5, v(0, 13)));
@@ -82,7 +83,7 @@
     object = playerBB(body);
   }
 
-  clientSpace.prototype.createEnemy = function(body) {
+  ClientSpace.prototype.createEnemy = function(body) {
     var object = new cp.Body(1, Infinity);
     object.setPos(body.position);
     this.bodies[body.id] = object;
@@ -101,29 +102,48 @@
 
 
 
-  clientSpace.prototype.moveBody = function(body) {
+  ClientSpace.prototype.moveBody = function(body) {
     if(this.bodies[body.id]) {
       this.bodies[body.id].setPos(body.position);
     }
   }
 
-  clientSpace.prototype.destroyBody = function(body) {
+
+  var postStepRemoval = function(){
+    var space = clientSpace.space;
+    var destroyBody = clientSpace.remove_bodies.slice();
+    clientSpace.remove_bodies = [];
+    while(destroyBody.length) {
+      var body = destroyBody.shift();
+      while(body.shapeList.length) {
+        var shape = body.shapeList.shift();
+        space.removeShape(shape);
+      }
+      //space.removeBody(body); body is not added to the space
+    }
+  }
+
+  ClientSpace.prototype.destroyBody = function(body) {
+    this.remove_bodies.push(clientSpace.bodies[body['id']]);
+    //this.space.addPostStepCallback(postStepRemoval);
+    postStepRemoval();
+
     //destroy each shape after step
   }
 
-  clientSpace.prototype.update = function(dt) {
+  ClientSpace.prototype.update = function(dt) {
     this.space.step(dt);
 
   };
 
-  clientSpace.prototype.run = function() {
+  ClientSpace.prototype.run = function() {
     this.running = true;
 
     this.lastStep = Date.now();
     this.step();
   };
 
-  clientSpace.prototype.step = function() {
+  ClientSpace.prototype.step = function() {
     var now = Date.now();
     var dt = (now - this.lastStep) / 1000;
     this.lastStep = now;
@@ -144,5 +164,5 @@
 
   };
 
-  window.clientSpace = clientSpace;
+  window.clientSpace = ClientSpace;
 })(window);
