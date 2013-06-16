@@ -5,6 +5,7 @@ var currentShapes = null;
 var shapeList = {};
 var segmentList = {};
 var currentStatics = 0;
+var lastOffset = {};
 var Resolution = {'width': 4096, 'height': 3072};
 socket.on('news', function (data) {
   playerId = data.playerId;
@@ -41,13 +42,36 @@ var Client = function() {
 
     return {'x': (point.x + self.offset.x * self.scale), 'y': ((Resolution['height'] - point.y + self.offset.y) * self.scale)};
 	};
+  this.updatePoint = function(point) {
+    var offsetDiff = {'x': this.offset.x - lastOffset.x, 'y': this.offset.y - lastOffset.y};
+    return {'x': (point.x + offsetDiff.x), 'y': ((point.y + offsetDiff.y) )};
+  };
 
 };
-window.innerHeight;
-window.innerWidth;
 
-Client.prototype.update = function(currentUpdate) {
-  client.prepareDraw(currentUpdate)
+
+Client.prototype.update = function(elements) {
+  var bodies = elements.bodies;
+  for(var i = 0; i < bodies.length; i++) {
+    var body = bodies[i];
+    if(body.playerId == playerId) {
+      client.setPosition(body.position);
+
+    }
+    switch(body.action) {
+      case 'move':
+        client.draw(body);
+        break;
+      case 'new':
+        client.draw(body);
+        break;
+      case 'destroy':
+        var shape = shapeList[body.id];
+        client.stage.removeChild(shape);
+        break;
+    }
+  }
+  client.stage.update();
 }
 
 Client.prototype.snapshot = function(currentSnapshot) {
@@ -71,70 +95,139 @@ Client.prototype.prepareDraw = function(elements) {
 Client.prototype.draw = function(body) {
   switch(body.kind) {
     case 'player':
+      body.position = {'x': body.position.x-15, 'y': body.position.y + 38}
+      var point = this.point2canvas(body.position);
       if(typeof shapeList[body.id] === 'undefined') {
-        var s = new createjs.Shape();
-        var g = s.graphics;
 
-        var point = this.point2canvas(body.position);
-        //client.drawPlayer(g, point, body);
-        client.drawPlayer(g, point, body);
+//      var s = new createjs.Shape();
+//      var g = s.graphics;
+//      client.drawPlayer(g, point, body);
+        var s = new createjs.BitmapAnimation(spriteSheet);
+        //s.gotoAndPlay("walkLeft");
+        s.currentFrame = 0;
+
+
+
+        s.x = point.x;
+        s.y = point.y;
         shapeList[body.id] = s;
         client.stage.addChild(s);
       }
       else {
-        var segment = shapeList[body.id];
-        segment.x = body.position.x;
-        segment.y = -body.position.y;
+        var s = shapeList[body.id];
+        console.log(body);
+        if(body.air == 0) {
+          if(body.direction == 0) {
+            if(s.currentAnimation != 'walkLeft') {
+              s.gotoAndStop("walkLeft");
+            }
+          }
+          else {
+            if(s.currentAnimation != 'walkRight') {
+              s.gotoAndStop("walkRight");
+            }
+          }
+        }
+        else {
+          if(body.direction == 0) {
+            if(s.currentAnimation != 'jumpLeft') {
+              s.gotoAndStop("jumpLeft");
+            }
+                
+          }
+          else {
+            if(s.currentAnimation != 'jumpRight') {
+              s.gotoAndStop("jumpRight");
+            }
+          }
+
+        }
+        s.x = point.x;
+        s.y = point.y;
       }
     break;
+    case 'circle':
+      var point = this.point2canvas(body.position);
+      if(typeof shapeList[body.id] === 'undefined') {
+        var s = new createjs.Shape();
+        var g = s.graphics;
+
+        //client.drawPlayer(g, point, body);
+        drawCircle(g, this.scale, body.radius);
+        s.x = point.x;
+        s.y = point.y;
+        shapeList[body.id] = s;
+
+        client.stage.addChild(s);
+      }
+      else {
+        var segment = shapeList[body.id];
+        segment.x = point.x;
+        segment.y = point.y;
+      }
+      break;
+
     case 'SegmentShape':
       if(typeof segmentList[body.hashid] === 'undefined') {
         var s = new createjs.Shape();
         var g = s.graphics;
-        var startPoint = this.point2canvas(body.startPosition);
-        var endPoint = this.point2canvas(body.endPosition);
+        var startPoint = {'x':0, 'y':0};
+        var endPoint = {'x': body.endPosition.x - body.startPosition.x, 'y': (-1*(body.endPosition.y - body.startPosition.y))}
         client.drawSegment(g, startPoint, endPoint, body);
-        s.x = startPoint.x;
-        s.y = endPoint.y;
-        segmentList[body.hashid] = body;
+        var point = this.point2canvas(body.startPosition);
+        s.x = point.x;
+        s.y = point.y;
+        segmentList[body.hashid] = s;
         client.stage.addChild(s);
       }
   }
 }
 
 Client.prototype.updateCam = function() {
+  self.backgroundImage.style.top = this.offset.y+'px';
+  self.backgroundImage.style.left = this.offset.x+'px';
+
+  for(var key in shapeList) {
+   if (shapeList.hasOwnProperty(key)) {
+     var shape = shapeList[key];
+     var point = this.updatePoint({'x': shape.x, 'y': shape.y});
+     shape.x = point.x;
+     shape.y = point.y;
+     //console.log('now y: '+shape.y)
+   }
+
+  }
+  
   for (var key in segmentList) {
    if (segmentList.hasOwnProperty(key)) {
       var segment = segmentList[key];
-      console.log('current: '+segment.x+' y: '+segment.y);
-      client.draw(segment);
-//    var point = this.point2canvas(segment)
-//    segment.x = point.x;
-//    segment.y = point.y;
-//    console.log('new: '+segment.x+' y: '+segment.y );
+      var point = this.updatePoint({'x': segment.x, 'y': segment.y});
+      segment.x = point.x;
+      segment.y = point.y;
    }
   }
 }
 
-Client.prototype.drawPlayer = function(g, point, body) {
-//var head = {'x': point.x, 'y': point.y};
-//var torso = {'x': point.x, 'y': point.y-10};
-//var food = {'x': point.x, 'y': point.y-15};
-  var shapeX = point.x - 5;
-  var shapeY = point.y - 20;
-  var shapeWidth = 10;
-  var shapeHeight = 40;
-  drawPlayerShape(g, shapeX, shapeY, shapeWidth, shapeHeight)
-//drawCircle(g, 1.0, head, 2.0);
-//drawCircle(g, 1.0, torso, 5.0);
-//drawCircle(g, 1.0, food, 5.0);
-}
+  Client.prototype.drawPlayer = function(g, point, body) {
+    var head = {'x': point.x, 'y': point.y};
+    var torso = {'x': point.x, 'y': point.y-10};
+    var food = {'x': point.x, 'y': point.y-15};
+    var shapeX = -5;
+    var shapeY = -20;
+    var shapeWidth = 10;
+    var shapeHeight = 40;
+      drawPlayerShape(g, shapeX, shapeY, shapeWidth, shapeHeight)
+    drawCircle(g, 1.0, head, 2.0);
+    drawCircle(g, 1.0, torso, 5.0);
+    drawCircle(g, 1.0, food, 5.0);
+  }
 
 Client.prototype.drawSegment = function(g, startPoint, endPoint, body) {
   drawLine(g, startPoint, endPoint)
 }
 
 Client.prototype.setPosition = function(position) {
+  lastOffset = {'x': this.offset.x, 'y': this.offset.y};
   var offsetX = position.x-window.innerWidth/2;
   var offsetY = Resolution.height - (position.y + window.innerHeight/2);
   if(offsetX > Resolution.width - window.innerWidth) {
@@ -159,18 +252,18 @@ Client.prototype.setPosition = function(position) {
       this.offset.y = offsetY * (-1);
     }
   }
-  console.log('newposition');
- this.updateCam();
+  client.updateCam();
+
 }
 
 
 window.client = new Client();
 
-var drawCircle = function(g, scale, c, radius) {
+var drawCircle = function(g, scale, radius) {
 	    g.setStrokeStyle(15, 'round', 'round');
 	    g.beginStroke("#000");
 	    g.beginFill("#F00");
-	    g.drawCircle(c.x, c.y, scale*radius); //55,53
+	    g.drawCircle(0, 0, scale*radius); //55,53
 	    g.endFill();
 	    g.setStrokeStyle(1, 'round', 'round');
 };
@@ -197,6 +290,23 @@ var drawLine = function(g, a, b) {
 var canvas = Client.prototype.canvas = document.getElementById('fg'); //document.getElementsByTagName('canvas')[0];
 var canvasBg = Client.prototype.canvasBg = document.getElementById('bg');
 var backgroundImage = Client.prototype.backgroundImage = document.getElementById('background'); //document.getElementsByTagName('canvas')[0];
+var imgNinja = new Image();
+imgNinja.src = "images/ninjaScale.png";
+
+var spriteSheet = new createjs.SpriteSheet({
+    
+    images: [imgNinja], 
+    // width, height & registration point of each sprite
+    frames: {width: 39.5, height: 60, regX: 0, regY: 0}, 
+    animations: {    
+        walkLeft: [8, 13, "walkLeft"],
+        walkRight: [16, 23, "walkRight"],
+        jumpLeft: [30, 30, "jumpLeft"],
+        jumpRight: [34, 34, "jumpRight"]
+    }
+
+});
+
 
 
 backgroundImage.style.position = canvasBg.style.position = canvas.style.position = "absolute";
@@ -244,22 +354,6 @@ window.onresize = function(e) {
 	Client.resized = true;
 };
 window.onresize();
-
-/*
-var requestAnimationFrame = window.requestAnimationFrame
-	|| window.webkitRequestAnimationFrame
-	|| window.mozRequestAnimationFrame
-	|| window.oRequestAnimationFrame
-	|| window.msRequestAnimationFrame
-	|| function(callback) {
-		return window.setTimeout(callback, 1000 / 60);
-	};
-*/
-var requestAnimationFrame = function(callback) {
-		return window.setTimeout(callback, 1000 / 60);
-	};
-
-
 
 
 

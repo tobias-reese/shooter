@@ -265,7 +265,7 @@ cp.Body.prototype.draw = function(action) {
 
   switch(this.kind) {
     case 'player':
-      body = {'kind': 'player', 'position': this.p, 'action': action, 'id': this.id, 'playerId': this.player.id};
+      body = {'kind': 'player', 'position': this.p, 'action': action, 'id': this.id, 'playerId': this.player.id, 'direction': this.player.lastDir, 'air': this.player.air};
       break;
     case 'circle':
       body = {'kind': 'circle', 'position': this.p, 'radius': this.radius, 'action': action, 'id': this.id};
@@ -304,7 +304,6 @@ cp.PolyShape.prototype.draw = function()
 };
 
 cp.SegmentShape.prototype.draw = function() {
-  console.log(this);
   var data = {'kind': 'SegmentShape', 'startPosition': this.ta, 'endPosition': this.tb, 'thickness': this.r, 'hashid': this.hashid};
   if(this.bg) {
     data['bg'] = 1;

@@ -11,6 +11,7 @@ function Player(position, space) {
   this.position = position;
   this.space = space;
   this.lastDir = 1;
+  this.air = 0;
 
   this.body = initPlayer(this);
 
@@ -101,13 +102,11 @@ var initPlayer = function(context) {
 }
 
 Player.prototype.hit = function(headshot) {
-  console.log(this.health);
   if(headshot) {
     this.health = 0;
     //this.body.setMoment(1);
     var context = this;
     this.body.setPos(Player.generateSpawnPosition());
-    console.log(this.body.p)
     this.health = 100;
   }
   else {
@@ -119,9 +118,7 @@ Player.prototype.hit = function(headshot) {
       //this.body.setMoment(1);
       var context = this;
       var pos = Player.generateSpawnPosition();
-      console.log(pos);
       this.body.setPos(pos);
-      console.log(this.body.p)
       this.health = 100;
     }
   }
@@ -152,6 +149,7 @@ Player.prototype.move = function(direction) {
   }
   //player in the air
   if(this.body.arbiterList === null) {
+    this.air = 1;
     if(direction === 2 && Math.abs(this.body.vy) < 350) {
       this.body.applyImpulse(new cp.Vect(0,1000), new cp.Vect(0,0));
     }
@@ -163,6 +161,7 @@ Player.prototype.move = function(direction) {
     }
   }
   else {
+    this.air = 0;
     if(direction === 2) {
       this.body.applyImpulse(new cp.Vect(0,1000), new cp.Vect(0,0));
     }
