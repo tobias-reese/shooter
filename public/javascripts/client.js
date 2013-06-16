@@ -152,6 +152,18 @@ Client.prototype.draw = function(body) {
         var s = new createjs.Shape();
         var g = s.graphics;
 
+//      var s = new createjs.BitmapAnimation(spriteSheetShuriken);
+//      s.gotoAndPlay("fire");
+//      s.currentFrame = 0;
+
+
+
+//      s.x = point.x;
+//      s.y = point.y;
+//      shapeList[body.id] = s;
+//      client.stage.addChild(s);
+
+
         //client.drawPlayer(g, point, body);
         drawCircle(g, this.scale, body.radius);
         s.x = point.x;
@@ -306,6 +318,21 @@ var spriteSheet = new createjs.SpriteSheet({
     }
 
 });
+
+//var imgShuriken = new Image();
+//imgShuriken.src = "images/shuriken.gif";
+
+//var spriteSheetShuriken = new createjs.SpriteSheet({
+//    
+//    images: [imgShuriken], 
+//    // width, height & registration point of each sprite
+//    frames: {width: 45, height: 45, regX: 2, regY: 2}, 
+//    animations: {    
+//        fire: [0, 5, "fire"],
+//    }
+
+//});
+
 
 
 

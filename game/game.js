@@ -238,6 +238,11 @@ Game.prototype.newPlayer = function() {
   return player.id;
 }
 
+Game.prototype.removePlayer = function(playerId) {
+  var player = this.playerList[playerId];
+  player.removePlayer(player);
+}
+
 Game.prototype.playerInput = function(input) {
   player = this.playerList[input.playerId];
 

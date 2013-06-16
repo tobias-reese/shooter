@@ -23,13 +23,17 @@ Player.generateSpawnPosition = function() {
   return {'x': ret.x, 'y': ret.y};
 } 
 
+Player.prototype.removePlayer = function(context) {
+  context.space.removeBodyNS(this.body);
+}
+
 var initPlayer = function(context) {
   var body = context.space.addBodyServer(new cp.Body(5, Infinity));
   body.setPos(context.position);
   body.v_limit = 800;
   body['kind'] = 'player';
-  var head = context.space.addShape(new cp.CircleShape(body, 5, v(0, 12)));
-  var torso = context.space.addShape(new cp.CircleShape(body, 7, v(0, 0)));
+  var head = context.space.addShape(new cp.CircleShape(body, 8, v(0, 23)));
+  var torso = context.space.addShape(new cp.CircleShape(body, 8, v(0, 0)));
   var legs = context.space.addShape(new cp.CircleShape(body, 7, v(0, -14)));
   head.group = context.id;
   torso.group = context.id;

@@ -74,16 +74,16 @@ var sendUpdate = function() {
 
 io = io.listen(app, { log: false })
 io.sockets.on('connection', function (socket) {
-  var hs = socket.handshake;
   var playerId = deathmatch_game.newPlayer();
   socket['playerId'] = playerId;
+  console.log(playerId);
   socket.emit('news', { 'playerId': playerId });
   socket.on('input', function (data) {
     deathmatch_game.playerInput(JSON.parse(data));
   });
   socket.on('disconnect', function () {
-    console.log('client disconnected')
-    console.log(hs)
+    console.log(socket['playerId']);
+    //deathmatch_game.removePlayer(socket['playerId']); doesnt work
   });
 
   sendSnapshot();
