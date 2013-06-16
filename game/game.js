@@ -304,7 +304,8 @@ cp.PolyShape.prototype.draw = function()
 };
 
 cp.SegmentShape.prototype.draw = function() {
-  var data = {'kind': 'SegmentShape', 'startPosition': this.ta, 'endPosition': this.tb, 'thickness': this.r};
+  console.log(this);
+  var data = {'kind': 'SegmentShape', 'startPosition': this.ta, 'endPosition': this.tb, 'thickness': this.r, 'hashid': this.hashid};
   if(this.bg) {
     data['bg'] = 1;
   }
