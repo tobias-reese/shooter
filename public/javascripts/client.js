@@ -1,5 +1,5 @@
 
-var socket = io.connect(%SERVER_URL%);
+var socket = io.connect('%SERVER_URL%');
 var playerId = null;
 var currentShapes = null;
 //var lastBB = {};
