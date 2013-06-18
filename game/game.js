@@ -1,5 +1,5 @@
 var cp = require('chipmunk');
-var Player = require('./Player').Player;
+var Player = require('./player').Player;
 var v = cp.v;
 var newBodies = [];
 var currentId = 1;
