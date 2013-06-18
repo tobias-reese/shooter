@@ -1,4 +1,5 @@
-var socket = io.connect('http://192.168.1.75');
+
+var socket = io.connect(%SERVER_URL%);
 var playerId = null;
 var currentShapes = null;
 //var lastBB = {};
